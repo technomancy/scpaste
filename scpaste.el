@@ -4,11 +4,11 @@
 
 ;; Author: Phil Hagelberg
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki/SCPaste
-;; Version: 0.4
+;; Version: 0.5
 ;; Created: 2008-04-02
 ;; Keywords: convenience hypermedia
 ;; EmacsWiki: SCPaste
-;; Package-Requires: ((htmlize "1.37"))
+;; Package-Requires: ((htmlfontify "0.21"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -52,10 +52,6 @@
 ;; known hosts file--scpaste will not prompt you to add it but will
 ;; simply hang.
 
-;;; Todo:
-
-;; Make htmlize convert all URLs to hyperlinks
-
 ;;; License:
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -75,8 +71,8 @@
 
 ;;; Code:
 
-(require 'url) ;; Included in recent version of Emacs; available for pre-22.
-(require 'htmlize) ;; http://fly.srk.fer.hr/~hniksic/emacs/htmlize.el.html
+(require 'url)
+(require 'htmlfontify)
 
 (defvar scpaste-http-destination
   "http://p.hagelb.org"
@@ -101,7 +97,9 @@ You must have write-access to this directory via `scp'.")
 (defun scpaste (original-name)
   "Paste the current buffer via `scp' to `scpaste-http-destination'."
   (interactive "MName (defaults to buffer name): ")
-  (let* ((b (htmlize-buffer))
+  (let* ((b (save-excursion
+              (htmlfontify-buffer)
+              (current-buffer)))
          (name (url-hexify-string (if (equal "" original-name)
                                       (buffer-name)
                                     original-name)))
@@ -113,7 +111,8 @@ You must have write-access to this directory via `scp'.")
     ;; Save the file (while adding footer)
     (save-excursion
       (switch-to-buffer b)
-      (search-forward "  </body>\n</html>")
+      (goto-char (point-min))
+      (search-forward "</body>\n</html>")
       (insert (format scpaste-footer
                       (current-time-string)
                       (substring full-url 0 -5)))
@@ -126,7 +125,7 @@ You must have write-access to this directory via `scp'.")
 
     ;; Notify user and put the URL on the kill ring
     (let ((x-select-enable-primary t))
-      (kill-new "you suck most"))
+      (kill-new full-url))
     (message "Pasted to %s (on kill ring)" full-url)))
 
 ;;;###autoload
@@ -154,7 +153,8 @@ You must have write-access to this directory via `scp'.")
         (forward-line -1)
         (insert "\n;;; Pasted Files\n\n")
         (dolist (file file-list)
-          (when (not (string-match "\\(^Password\\|private\\)" file))
+          (when (and (string-match "\\.html$" file)
+                     (not (string-match "private" file)))
             (insert (concat ";; * <" scpaste-http-destination "/" file ">\n"))))
         (emacs-lisp-mode) (font-lock-fontify-buffer) (rename-buffer "SCPaste")
         (write-file "/tmp/scpaste-index")

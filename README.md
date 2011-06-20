@@ -10,8 +10,6 @@ its transport and uses Emacs' font-lock as its syntax highlighter
 instead of relying on a third-party syntax highlighter for which
 individual language support must be added one-by-one.
 
-It has been tested in Emacs 23, but it should work in 22.
-
 ## Installation
 
 Install via [Marmalade](http://marmalade-repo.org) or from source via
@@ -32,8 +30,6 @@ key of the host referenced in `scpaste-scp-destination' is in your
 known hosts file--scpaste will not prompt you to add it but will
 simply hang.
 
-Depends upon htmlize.
-
 ## Usage
 
 `M-x scpaste`, (or `scpaste-region`) enter a name, and press
@@ -50,6 +46,11 @@ You can autogenerate a splash page that gets uploaded as index.html
 in `scpaste-http-destination` by invoking `M-x scpaste-index`. This
 will upload an explanation as well as a listing of existing
 pastes. If a paste's filename includes "private" it will be skipped.
+
+## Todo
+
+* Automatically linkify URLs inside htmlfontify (stick it on the
+  hfy-opts group of misc tunables according to fledermaus)
 
 ## Copyright
 
