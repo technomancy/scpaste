@@ -74,6 +74,9 @@
 (require 'url)
 (require 'htmlfontify)
 
+(defvar scpaste-scp-port
+  "22")
+
 (defvar scpaste-http-destination
   "http://p.hagelb.org"
   "Publicly-accessible (via HTTP) location for pasted files.")
@@ -119,8 +122,11 @@ You must have write-access to this directory via `scp'.")
       (write-file tmp-file)
       (kill-buffer b))
 
-    (shell-command (concat "scp " tmp-file " " scp-destination))
-    (shell-command (concat "scp " (buffer-file-name (current-buffer))
+    (shell-command (concat "scp -P " scpaste-scp-port
+                           " " tmp-file
+                           " " scp-destination))
+    (shell-command (concat "scp -P " scpaste-scp-port
+                           " " (buffer-file-name (current-buffer))
                            " " scp-original-destination))
 
     ;; Notify user and put the URL on the kill ring
