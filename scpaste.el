@@ -74,6 +74,9 @@
 (require 'url)
 (require 'htmlize)
 
+(defvar scpaste-username
+  (user-login-name))
+
 (defvar scpaste-scp-port
   "22")
 
@@ -122,10 +125,12 @@ You must have write-access to this directory via `scp'.")
 
     (shell-command (concat "scp -P " scpaste-scp-port
                            " " tmp-file
-                           " " scp-destination))
+			   " " scpaste-username
+                           "@" scp-destination))
     (shell-command (concat "scp -P " scpaste-scp-port
                            " " (buffer-file-name (current-buffer))
-                           " " scp-original-destination))
+			   " " scpaste-username
+                           "@" scp-original-destination))
 
     ;; Notify user and put the URL on the kill ring
     (let ((x-select-enable-primary t))
@@ -146,7 +151,8 @@ You must have write-access to this directory via `scp'.")
   "Generate an index of all existing pastes on server on the splash page."
   (interactive)
   (let* ((dest-parts (split-string scpaste-scp-destination ":"))
-         (files (shell-command-to-string (concat "ssh " (car dest-parts)
+         (files (shell-command-to-string (concat "ssh " scpaste-username
+						 "@" (car dest-parts)
                                                  " ls " (cadr dest-parts))))
          (file-list (split-string files "\n")))
     (save-excursion

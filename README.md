@@ -18,7 +18,8 @@ Install via [Marmalade](http://marmalade-repo.org) or from source via
 You'll need to configure your destination:
 
     (setq scpaste-http-destination "http://p.hagelb.org"
-          scpaste-scp-destination "p.hagelb.org:p.hagelb.org")
+          scpaste-scp-destination "p.hagelb.org:p.hagelb.org"
+          scpaste-username "Username")
 
 `scpaste-scp-destination` should be an `scp`-accessible directory that
 is also served over HTTP. `scpaste-http-destination` should be the URL
