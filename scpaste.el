@@ -125,11 +125,11 @@ You must have write-access to this directory via `scp'.")
 
     (shell-command (concat "scp -P " scpaste-scp-port
                            " " tmp-file
-			   " " scpaste-username
+                           " " scpaste-username
                            "@" scp-destination))
     (shell-command (concat "scp -P " scpaste-scp-port
                            " " (buffer-file-name (current-buffer))
-			   " " scpaste-username
+                           " " scpaste-username
                            "@" scp-original-destination))
 
     ;; Notify user and put the URL on the kill ring
@@ -152,7 +152,7 @@ You must have write-access to this directory via `scp'.")
   (interactive)
   (let* ((dest-parts (split-string scpaste-scp-destination ":"))
          (files (shell-command-to-string (concat "ssh " scpaste-username
-						 "@" (car dest-parts)
+                                                 "@" (car dest-parts)
                                                  " ls " (cadr dest-parts))))
          (file-list (split-string files "\n")))
     (save-excursion
