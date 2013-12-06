@@ -24,6 +24,11 @@ You'll need to configure your destination:
 is also served over HTTP. `scpaste-http-destination` should be the URL
 that corresponds to that directory.
 
+Optionally you can set the displayed name and where it should link to:
+
+    (setq scpaste-user-name "Technomancy"
+          scpaste-user-address "http://technomancy.us/")
+
 You probably want to set up SSH keys for your destination to avoid
 having to enter your password once for each paste. Also be sure the
 key of the host referenced in `scpaste-scp-destination' is in your

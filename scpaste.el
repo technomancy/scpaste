@@ -4,7 +4,7 @@
 
 ;; Author: Phil Hagelberg
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki/SCPaste
-;; Version: 0.6
+;; Version: 0.6.1
 ;; Created: 2008-04-02
 ;; Keywords: convenience hypermedia
 ;; EmacsWiki: SCPaste
@@ -33,6 +33,12 @@
 ;; (autoload 'scpaste "scpaste" "Paste the current buffer." t nil)
 ;; (setq scpaste-http-destination "http://p.hagelb.org"
 ;;       scpaste-scp-destination "p.hagelb.org:p.hagelb.org")
+
+;; Optionally you can set the displayed name and where it should link to:
+
+;; (setq scpaste-user-name "Technomancy"
+;;       scpaste-user-address "http://technomancy.us/")
+
 
 ;;; Usage
 
