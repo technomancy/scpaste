@@ -1,6 +1,6 @@
 ;;; scpaste.el --- Paste to the web via scp.
 
-;; Copyright (C) 2008 Phil Hagelberg
+;; Copyright © 2008-2012 Phil Hagelberg
 
 ;; Author: Phil Hagelberg
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki/SCPaste
@@ -26,19 +26,20 @@
 
 ;;; Install
 
-;; To install, copy this file into your Emacs source directory, set
-;; `scpaste-http-destination' and `scpaste-scp-destination' to
-;; appropriate values, and add this to your .emacs file:
+;; Add Marmalade as a package source, and then run M-x package-install
+;; scpaste.
 
-;; (autoload 'scpaste "scpaste" "Paste the current buffer." t nil)
+;; Set `scpaste-http-destination' and `scpaste-scp-destination' to
+;; appropriate values, and add this to your Emacs config:
+
 ;; (setq scpaste-http-destination "http://p.hagelb.org"
 ;;       scpaste-scp-destination "p.hagelb.org:p.hagelb.org")
 
-;; Optionally you can set the displayed name and where it should link to:
+;; Optionally you can set the displayed name for the footer and where
+;; it should link to:
 
 ;; (setq scpaste-user-name "Technomancy"
 ;;       scpaste-user-address "http://technomancy.us/")
-
 
 ;;; Usage
 
