@@ -4,7 +4,7 @@
 
 ;; Author: Phil Hagelberg
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki/SCPaste
-;; Version: 0.6.1
+;; Version: 0.6.2
 ;; Created: 2008-04-02
 ;; Keywords: convenience hypermedia
 ;; EmacsWiki: SCPaste
@@ -33,6 +33,9 @@
 ;; (autoload 'scpaste "scpaste" "Paste the current buffer." t nil)
 ;; (setq scpaste-http-destination "http://p.hagelb.org"
 ;;       scpaste-scp-destination "p.hagelb.org:p.hagelb.org")
+
+;; If you have a different keyfile, you can set that, too:
+;; (setq scpaste-scp-pubkey "~/.ssh/my_keyfile.pub")
 
 ;; Optionally you can set the displayed name and where it should link to:
 
@@ -92,6 +95,11 @@
   "SSH-accessible directory corresponding to `scpaste-http-destination'.
 You must have write-access to this directory via `scp'.")
 
+(defvar scpaste-scp-pubkey
+  nil
+  "Identity file for the server, corresponds to ssh’s `-i` option
+Example: \"~/.ssh/id.pub\"")
+
 (defvar scpaste-user-name
   nil
   "Name displayed under the paste.")
@@ -140,12 +148,20 @@ You must have write-access to this directory via `scp'.")
       (write-file tmp-file)
       (kill-buffer b))
 
-    (shell-command (concat "scp -P " scpaste-scp-port
-                           " " tmp-file
-                           " " scp-destination))
-    (shell-command (concat "scp -P " scpaste-scp-port
-                           " " (buffer-file-name (current-buffer))
-                           " " scp-original-destination))
+    (let* ((identity (if scpaste-scp-pubkey
+                         (concat "-i " scpaste-scp-pubkey)
+                       ""))
+           (port (concat "-P " scpaste-scp-port))
+           (invocation (concat "scp " identity " " port))
+           (command-1 (concat invocation
+                              " " tmp-file
+                              " " scp-destination))
+           (command-2 (concat invocation
+                              " " (buffer-file-name (current-buffer))
+                              " " scp-original-destination)))
+           (message command-1)
+      (shell-command command-1)
+      (shell-command command-2))
 
     ;; Notify user and put the URL on the kill ring
     (let ((x-select-enable-primary t))

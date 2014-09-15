@@ -24,6 +24,10 @@ You'll need to configure your destination:
 is also served over HTTP. `scpaste-http-destination` should be the URL
 that corresponds to that directory.
 
+If you have a different keyfile, you can set that, too:
+
+   (setq scpaste-scp-pubkey "~/.ssh/my_keyfile.pub")
+
 Optionally you can set the displayed name and where it should link to:
 
     (setq scpaste-user-name "Technomancy"
