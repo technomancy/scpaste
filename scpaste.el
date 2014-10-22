@@ -135,7 +135,7 @@ Example: \"~/.ssh/id.pub\"")
          (full-url (concat scpaste-http-destination "/" (url-hexify-string name) ".html"))
          (scp-destination (concat scpaste-scp-destination "/" name ".html"))
          (scp-original-destination (concat scpaste-scp-destination "/" name))
-         (tmp-file (concat temporary-file-directory "/" name)))
+         (tmp-file (concat temporary-file-directory name)))
 
     ;; Save the file (while adding footer)
     (save-excursion
