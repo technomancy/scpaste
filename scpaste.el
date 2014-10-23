@@ -155,11 +155,7 @@ Example: \"~/.ssh/id.pub\"")
            (invocation (concat "scp -q " identity " " port))
            (command-1 (concat invocation
                               " " tmp-file
-                              " " scp-destination))
-           ;; (command-2 (concat invocation
-           ;;                    " " (buffer-file-name (current-buffer))
-           ;;                    " " scp-original-destination))
-           )
+                              " " scp-destination)))
       (with-temp-message (format "Executing %s" command-1)
         (let* ((error-buffer "*scp-error*")
                (retval (shell-command command-1 nil error-buffer))
