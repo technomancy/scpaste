@@ -135,7 +135,7 @@ Example: \"~/.ssh/id.pub\"")
          (full-url (concat scpaste-http-destination "/" (url-hexify-string name) ".html"))
          (scp-destination (concat scpaste-scp-destination "/" name ".html"))
          (scp-original-destination (concat scpaste-scp-destination "/" name))
-         (tmp-file (concat temporary-file-directory "/" name)))
+         (tmp-file (concat temporary-file-directory name)))
 
     ;; Save the file (while adding footer)
     (save-excursion
@@ -152,21 +152,22 @@ Example: \"~/.ssh/id.pub\"")
                          (concat "-i " scpaste-scp-pubkey)
                        ""))
            (port (concat "-P " scpaste-scp-port))
-           (invocation (concat "scp " identity " " port))
+           (invocation (concat "scp -q " identity " " port))
            (command-1 (concat invocation
                               " " tmp-file
-                              " " scp-destination))
-           (command-2 (concat invocation
-                              " " (buffer-file-name (current-buffer))
-                              " " scp-original-destination)))
-           (message command-1)
-      (shell-command command-1)
-      (shell-command command-2))
+                              " " scp-destination)))
+      (with-temp-message (format "Executing %s" command-1)
+        (let* ((error-buffer "*scp-error*")
+               (retval (shell-command command-1 nil error-buffer))
+               (x-select-enable-primary t))
+          ;; Notify user and put the URL on the kill ring
+          (if (= retval 0)
+              (progn (kill-new full-url)
+                     (message "Pasted to %s (on kill ring)" full-url))
+            (progn
+              (pop-to-buffer error-buffer)
+              (help-mode-setup))))))))
 
-    ;; Notify user and put the URL on the kill ring
-    (let ((x-select-enable-primary t))
-      (kill-new full-url))
-    (message "Pasted to %s (on kill ring)" full-url)))
 
 ;;;###autoload
 (defun scpaste-region (name)
