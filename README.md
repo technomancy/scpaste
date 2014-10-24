@@ -12,7 +12,7 @@ individual language support must be added one-by-one.
 
 ## Installation
 
-Install via [Marmalade](http://marmalade-repo.org) or from source via
+Install via [Marmalade](https://marmalade-repo.org) or from source via
 <tt>M-x package-install-from-buffer</tt>.
 
 You'll need to configure your destination:

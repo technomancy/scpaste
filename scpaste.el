@@ -4,7 +4,7 @@
 
 ;; Author: Phil Hagelberg
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki/SCPaste
-;; Version: 0.6.2
+;; Version: 0.6.3
 ;; Created: 2008-04-02
 ;; Keywords: convenience hypermedia
 ;; EmacsWiki: SCPaste
