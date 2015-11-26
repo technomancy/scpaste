@@ -38,6 +38,9 @@
 ;; If you have a different keyfile, you can set that, too:
 ;; (setq scpaste-scp-pubkey "~/.ssh/my_keyfile.pub")
 
+;; If you use a non-standard ssh port, you can specify it by setting
+;; `scpaste-scp-port'.
+
 ;; Optionally you can set the displayed name for the footer and where
 ;; it should link to:
 ;; (setq scpaste-user-name "Technomancy"
@@ -84,7 +87,7 @@
 (require 'htmlize)
 
 (defvar scpaste-scp-port
-  "22")
+  nil)
 
 (defvar scpaste-http-destination
   "http://p.hagelb.org"
@@ -151,7 +154,7 @@ Example: \"~/.ssh/id.pub\"")
     (let* ((identity (if scpaste-scp-pubkey
                          (concat "-i " scpaste-scp-pubkey)
                        ""))
-           (port (concat "-P " scpaste-scp-port))
+           (port (if scpaste-scp-port (concat "-P " scpaste-scp-port)))
            (invocation (concat "scp -q " identity " " port))
            (command-1 (concat invocation
                               " " tmp-file
