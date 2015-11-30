@@ -111,11 +111,6 @@ Corresponds to ssh’s `-i` option Example: \"~/.ssh/id.pub\"")
   nil
   "Link to the user’s homebase (can be a mailto:).")
 
-;; Fallbacks for older versions
-;; `font-lock-ensure' is only available from 24.4.50 on
-(unless (fboundp 'font-lock-ensure)
-  (defalias 'font-lock-ensure 'font-lock-fontify-buffer))
-
 ;; To set defvar while developing: (load-file (buffer-file-name))
 (defvar scpaste-el-location load-file-name)
 
@@ -223,7 +218,11 @@ NAME is used for the file name."
           (when (and (string-match "\\.html$" file)
                      (not (string-match "private" file)))
             (insert (concat ";; * <" scpaste-http-destination "/" file ">\n"))))
-        (emacs-lisp-mode) (font-lock-ensure) (rename-buffer "SCPaste")
+        (emacs-lisp-mode)
+	(if (fboundp 'font-lock-ensure)
+	    (font-lock-ensure)
+	  (font-lock-fontify-buffer))
+	(rename-buffer "SCPaste")
         (write-file "/tmp/scpaste-index")
         (scpaste "index")))))
 
