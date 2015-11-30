@@ -111,6 +111,10 @@ Corresponds to ssh’s `-i` option Example: \"~/.ssh/id.pub\"")
   nil
   "Link to the user’s homebase (can be a mailto:).")
 
+;; Fallbacks for older versions
+;; `font-lock-ensure' is only available from 24.4.50 on
+(unless (fboundp 'font-lock-ensure)
+  (defalias 'font-lock-ensure 'font-lock-fontify-buffer))
 
 ;; To set defvar while developing: (load-file (buffer-file-name))
 (defvar scpaste-el-location load-file-name)
