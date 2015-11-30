@@ -100,8 +100,8 @@ You must have write-access to this directory via `scp'.")
 
 (defvar scpaste-scp-pubkey
   nil
-  "Identity file for the server, corresponds to ssh’s `-i` option
-Example: \"~/.ssh/id.pub\"")
+  "Identity file for the server.
+Corresponds to ssh’s `-i` option Example: \"~/.ssh/id.pub\"")
 
 (defvar scpaste-user-name
   nil
@@ -122,61 +122,78 @@ Example: \"~/.ssh/id.pub\"")
             ;;(concat "DEBUG" user scpaste-user-name scpaste-user-address)
             (if scpaste-user-address
                 (concat "<a href='" scpaste-user-address "'>" user "</a>")
-                user))
+	      user))
           " using <a href='http://p.hagelb.org'>scpaste</a> at %s. "
           (cadr (current-time-zone)) ". (<a href='%s'>original</a>)</p>"))
 
 
 ;;;###autoload
 (defun scpaste (original-name)
-  "Paste the current buffer via `scp' to `scpaste-http-destination'."
+  "Paste the current buffer via `scp' to `scpaste-http-destination'.
+If ORIGINAL-NAME is an empty string, then the buffer name is used
+for the file name."
   (interactive "MName (defaults to buffer name): ")
-  (let* ((b (htmlize-buffer))
+  (let* ((b (generate-new-buffer (generate-new-buffer-name "b")))
+	 (hb (htmlize-buffer))
          (name (url-hexify-string (if (equal "" original-name)
-                                      (buffer-name)
-                                    original-name)))
-         (full-url (concat scpaste-http-destination "/" (url-hexify-string name)
-                           ".html"))
-         (scp-destination (concat scpaste-scp-destination "/" name ".html"))
-         (scp-original-destination (concat scpaste-scp-destination "/" name))
-         (tmp-file (concat temporary-file-directory name)))
+				      (buffer-name)
+				    original-name)))
+         (full-url (concat scpaste-http-destination "/" name ".html"))
+         (scp-destination (concat scpaste-scp-destination "/" name
+				  ".html"))
+         (scp-original-destination (concat scpaste-scp-destination "/"
+					   name))
+	 (tmp-file (concat temporary-file-directory name))
+         (tmp-hfile (concat temporary-file-directory name ".html")))
 
-    ;; Save the file (while adding footer)
+    ;; Save the files (while adding a footer to html file)
     (save-excursion
+      (copy-to-buffer b (point-min) (point-max))
       (switch-to-buffer b)
+      (write-file tmp-file)
+      (kill-buffer b)
+      (switch-to-buffer hb)
       (goto-char (point-min))
       (search-forward "</body>\n</html>")
       (insert (format (scpaste-footer)
                       (current-time-string)
                       (substring full-url 0 -5)))
-      (write-file tmp-file)
-      (kill-buffer b))
+      (write-file tmp-hfile)
+      (kill-buffer hb))
 
     (let* ((identity (if scpaste-scp-pubkey
-                         (concat "-i " scpaste-scp-pubkey)
-                       ""))
+                         (concat "-i " scpaste-scp-pubkey) ""))
            (port (if scpaste-scp-port (concat "-P " scpaste-scp-port)))
            (invocation (concat "scp -q " identity " " port))
-           (command-1 (concat invocation
-                              " " tmp-file
-                              " " scp-destination)))
+           (command-1 (concat invocation " " tmp-file " "
+			      scp-original-destination))
+	   (command-2 (concat invocation " " tmp-hfile " "
+			      scp-destination)))
 
       (let* ((error-buffer "*scp-error*")
-               (retval (with-temp-message (format "Executing %s" command-1)
-                         (shell-command command-1 nil error-buffer)))
-               (x-select-enable-primary t))
+	     (retval (+
+		      (with-temp-message
+			  (format "Executing %s" command-1)
+			(shell-command command-1 nil error-buffer))
+		      (with-temp-message
+			  (format "Executing %s" command-2)
+			(shell-command command-2 nil error-buffer))))
+	     ;; (select-enable-primary t))
+	     (x-select-enable-primary t))
         (delete-file tmp-file)
-          ;; Notify user and put the URL on the kill ring
-          (if (= retval 0)
-              (progn (kill-new full-url)
-                     (message "Pasted to %s (on kill ring)" full-url))
-            (progn
-              (pop-to-buffer error-buffer)
-              (help-mode-setup)))))))
+	(delete-file tmp-hfile)
+	;; Notify user and put the URL on the kill ring
+	(if (= retval 0)
+	    (progn (kill-new full-url)
+		   (message "Pasted to %s (on kill ring)" full-url))
+	  (progn
+	    (pop-to-buffer error-buffer)
+	    (help-mode-setup)))))))
 
 ;;;###autoload
 (defun scpaste-region (name)
-  "Paste the current region via `scpaste'."
+  "Paste the current region via `scpaste'.
+NAME is used for the file name."
   (interactive "MName: ")
   (let ((region-contents (buffer-substring (mark) (point))))
     (with-temp-buffer
@@ -202,7 +219,7 @@ Example: \"~/.ssh/id.pub\"")
           (when (and (string-match "\\.html$" file)
                      (not (string-match "private" file)))
             (insert (concat ";; * <" scpaste-http-destination "/" file ">\n"))))
-        (emacs-lisp-mode) (font-lock-fontify-buffer) (rename-buffer "SCPaste")
+        (emacs-lisp-mode) (font-lock-ensure) (rename-buffer "SCPaste")
         (write-file "/tmp/scpaste-index")
         (scpaste "index")))))
 
