@@ -134,14 +134,16 @@ for the file name."
   (interactive "MName (defaults to buffer name): ")
   (let* ((b (generate-new-buffer (generate-new-buffer-name "b")))
 	 (hb (htmlize-buffer))
-         (name (url-hexify-string (if (equal "" original-name)
-				      (buffer-name)
-				    original-name)))
-         (full-url (concat scpaste-http-destination "/" name ".html"))
-         (scp-destination (concat scpaste-scp-destination "/" name
-				  ".html"))
-         (scp-original-destination (concat scpaste-scp-destination "/"
-					   name))
+         (name (replace-regexp-in-string "[/\\%*:|\"<> 	]+" "_"
+					 (if (equal "" original-name)
+					     (buffer-name)
+					   original-name)))
+         (full-url (concat scpaste-http-destination
+			   "/" (url-hexify-string name) ".html"))
+         (scp-destination (concat scpaste-scp-destination
+				  "/" name ".html"))
+         (scp-original-destination (concat scpaste-scp-destination
+					   "/" name))
 	 (tmp-file (concat temporary-file-directory name))
          (tmp-hfile (concat temporary-file-directory name ".html")))
 
