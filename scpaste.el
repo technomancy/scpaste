@@ -41,6 +41,10 @@
 ;; If you use a non-standard ssh port, you can specify it by setting
 ;; `scpaste-scp-port'.
 
+;; If you need to use alternative scp and ssh programs, you can set
+;; `scpaste-scp' and `scpaste-ssh'. For example, scpaste works with the Putty
+;; suite on Windows if you set these to pscp and plink, respectively.
+
 ;; Optionally you can set the displayed name for the footer and where
 ;; it should link to:
 ;; (setq scpaste-user-name "Technomancy"
@@ -88,6 +92,14 @@
 
 (defvar scpaste-scp-port
   nil)
+
+(defvar scpaste-scp
+  "scp"
+  "The scp program to use.")
+
+(defvar scpaste-ssh
+  "ssh"
+  "The ssh program to use when running remote shell commands.")
 
 (defvar scpaste-http-destination
   "http://p.hagelb.org"
@@ -165,7 +177,7 @@ for the file name."
     (let* ((identity (if scpaste-scp-pubkey
                          (concat "-i " scpaste-scp-pubkey) ""))
            (port (if scpaste-scp-port (concat "-P " scpaste-scp-port)))
-           (invocation (concat "scp -q " identity " " port))
+           (invocation (concat scpaste-scp " -q " identity " " port))
            (command-1 (concat invocation " " tmp-file " "
 			      scp-original-destination))
 	   (command-2 (concat invocation " " tmp-hfile " "
@@ -206,7 +218,7 @@ NAME is used for the file name."
   "Generate an index of all existing pastes on server on the splash page."
   (interactive)
   (let* ((dest-parts (split-string scpaste-scp-destination ":"))
-         (files (shell-command-to-string (concat "ssh " (car dest-parts)
+         (files (shell-command-to-string (concat scpaste-ssh " " (car dest-parts)
                                                  " ls " (cadr dest-parts))))
          (file-list (split-string files "\n")))
     (save-excursion
