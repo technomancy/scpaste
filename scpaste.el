@@ -237,8 +237,8 @@ NAME is used for the file name."
 	    (font-lock-ensure)
 	  (font-lock-fontify-buffer))
 	(rename-buffer "SCPaste")
-        (write-file "/tmp/scpaste-index")
-        (scpaste "index")))))
+    (write-file (concat temporary-file-directory "scpaste-index"))
+    (scpaste "index")))))
 
 (provide 'scpaste)
 ;;; scpaste.el ends here
