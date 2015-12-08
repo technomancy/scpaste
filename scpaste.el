@@ -124,7 +124,8 @@ Corresponds to ssh’s `-i` option Example: \"~/.ssh/id.pub\"")
   "Link to the user’s homebase (can be a mailto:).")
 
 ;; To set defvar while developing: (load-file (buffer-file-name))
-(defvar scpaste-el-location load-file-name)
+(defvar scpaste-el-location (replace-regexp-in-string "\.elc$" ".el"
+                                                      load-file-name))
 
 (defun scpaste-footer ()
   "HTML message to place at the bottom of each file."
