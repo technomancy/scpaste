@@ -233,12 +233,12 @@ NAME is used for the file name."
                      (not (string-match "private" file)))
             (insert (concat ";; * <" scpaste-http-destination "/" file ">\n"))))
         (emacs-lisp-mode)
-	(if (fboundp 'font-lock-ensure)
-	    (font-lock-ensure)
-	  (font-lock-fontify-buffer))
-	(rename-buffer "SCPaste")
-    (write-file (concat temporary-file-directory "scpaste-index"))
-    (scpaste "index")))))
+        (if (fboundp 'font-lock-ensure)
+            (font-lock-ensure)
+          (font-lock-fontify-buffer))
+        (rename-buffer "SCPaste")
+        (write-file (concat temporary-file-directory "scpaste-index"))
+        (scpaste "index")))))
 
 (provide 'scpaste)
 ;;; scpaste.el ends here
