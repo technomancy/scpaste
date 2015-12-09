@@ -41,6 +41,10 @@
 ;; If you use a non-standard ssh port, you can specify it by setting
 ;; `scpaste-scp-port'.
 
+;; If you need to use alternative scp and ssh programs, you can set
+;; `scpaste-scp' and `scpaste-ssh'. For example, scpaste works with the Putty
+;; suite on Windows if you set these to pscp and plink, respectively.
+
 ;; Optionally you can set the displayed name for the footer and where
 ;; it should link to:
 ;; (setq scpaste-user-name "Technomancy"
@@ -89,6 +93,14 @@
 (defvar scpaste-scp-port
   nil)
 
+(defvar scpaste-scp
+  "scp"
+  "The scp program to use.")
+
+(defvar scpaste-ssh
+  "ssh"
+  "The ssh program to use when running remote shell commands.")
+
 (defvar scpaste-http-destination
   "http://p.hagelb.org"
   "Publicly-accessible (via HTTP) location for pasted files.")
@@ -112,7 +124,8 @@ Corresponds to ssh’s `-i` option Example: \"~/.ssh/id.pub\"")
   "Link to the user’s homebase (can be a mailto:).")
 
 ;; To set defvar while developing: (load-file (buffer-file-name))
-(defvar scpaste-el-location load-file-name)
+(defvar scpaste-el-location (replace-regexp-in-string "\.elc$" ".el"
+                                                      load-file-name))
 
 (defun scpaste-footer ()
   "HTML message to place at the bottom of each file."
@@ -165,7 +178,7 @@ for the file name."
     (let* ((identity (if scpaste-scp-pubkey
                          (concat "-i " scpaste-scp-pubkey) ""))
            (port (if scpaste-scp-port (concat "-P " scpaste-scp-port)))
-           (invocation (concat "scp -q " identity " " port))
+           (invocation (concat scpaste-scp " -q " identity " " port))
            (command-1 (concat invocation " " tmp-file " "
 			      scp-original-destination))
 	   (command-2 (concat invocation " " tmp-hfile " "
@@ -206,7 +219,7 @@ NAME is used for the file name."
   "Generate an index of all existing pastes on server on the splash page."
   (interactive)
   (let* ((dest-parts (split-string scpaste-scp-destination ":"))
-         (files (shell-command-to-string (concat "ssh " (car dest-parts)
+         (files (shell-command-to-string (concat scpaste-ssh " " (car dest-parts)
                                                  " ls " (cadr dest-parts))))
          (file-list (split-string files "\n")))
     (save-excursion
@@ -221,11 +234,11 @@ NAME is used for the file name."
                      (not (string-match "private" file)))
             (insert (concat ";; * <" scpaste-http-destination "/" file ">\n"))))
         (emacs-lisp-mode)
-	(if (fboundp 'font-lock-ensure)
-	    (font-lock-ensure)
-	  (font-lock-fontify-buffer))
-	(rename-buffer "SCPaste")
-        (write-file "/tmp/scpaste-index")
+        (if (fboundp 'font-lock-ensure)
+            (font-lock-ensure)
+          (font-lock-fontify-buffer))
+        (rename-buffer "SCPaste")
+        (write-file (concat temporary-file-directory "scpaste-index"))
         (scpaste "index")))))
 
 (provide 'scpaste)
