@@ -87,6 +87,7 @@
 
 ;;; Code:
 
+(require 'org)
 (require 'url)
 (require 'htmlize)
 
@@ -140,13 +141,13 @@ Corresponds to ssh’s `-i` option Example: \"~/.ssh/id.pub\"")
 
 
 ;;;###autoload
-(defun scpaste (original-name)
+(defun do-scpaste (original-name exporter)
   "Paste the current buffer via `scp' to `scpaste-http-destination'.
 If ORIGINAL-NAME is an empty string, then the buffer name is used
 for the file name."
   (interactive "MName (defaults to buffer name): ")
   (let* ((b (generate-new-buffer (generate-new-buffer-name "b")))
-         (hb (htmlize-buffer))
+         (hb (funcall exporter))
          (name (replace-regexp-in-string "[/\\%*:|\"<>  ]+" "_"
                                          (if (equal "" original-name)
                                              (buffer-name)
@@ -203,6 +204,16 @@ for the file name."
           (progn
             (pop-to-buffer error-buffer)
             (help-mode-setup)))))))
+
+;;;###autoload
+(defun scpaste (original-name)
+  (interactive "MName (defaults to buffer name): ")
+  (do-scpaste original-name 'htmlize-buffer))
+
+;;;###autoload
+(defun scpaste-org (original-name)
+  (interactive "MName (defaults to buffer name): ")
+  (do-scpaste original-name 'org-html-export-as-html))
 
 ;;;###autoload
 (defun scpaste-region (name)
