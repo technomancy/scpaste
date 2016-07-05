@@ -147,11 +147,11 @@ If ORIGINAL-NAME is an empty string, then the buffer name is used
 for the file name."
   (interactive "MName (defaults to buffer name): ")
   (let* ((b (generate-new-buffer (generate-new-buffer-name "b")))
-         (hb (funcall exporter))
          (name (replace-regexp-in-string "[/\\%*:|\"<>  ]+" "_"
                                          (if (equal "" original-name)
                                              (buffer-name)
                                            original-name)))
+         (hb (funcall exporter))
          (full-url (concat scpaste-http-destination
                            "/" (url-hexify-string name) ".html"))
          (scp-destination (concat scpaste-scp-destination
