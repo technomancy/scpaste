@@ -163,7 +163,7 @@ BUFFER may be either a buffer or its name (a string)."
               ;; Ignore error, in particular,
               ;; "Attempt to delete the sole visible or iconified frame".
               (condition-case nil (delete-window win) (error nil))))))
-    (when (called-interactively-p)
+    (when (called-interactively-p 'any)
       (error "Cannot kill buffer.  Not a live buffer: `%s'" buffer))))
 
 
@@ -195,7 +195,7 @@ for the file name."
       (copy-to-buffer b (point-min) (point-max))
       (switch-to-buffer b)
       (write-file tmp-file)
-      (kill-buffer-and-its-window b)
+      (kill-buffer-and-its-windows b)
       (switch-to-buffer hb)
       (goto-char (point-min))
       (search-forward "</body>\n</html>")
@@ -203,7 +203,7 @@ for the file name."
                       (current-time-string)
                       (substring full-url 0 -5)))
       (write-file tmp-hfile)
-      (kill-buffer-and-its-window hb))
+      (kill-buffer-and-its-windows hb))
 
     (let* ((identity (if scpaste-scp-pubkey
                          (concat "-i " scpaste-scp-pubkey) ""))
