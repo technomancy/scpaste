@@ -87,6 +87,7 @@
 
 ;;; Code:
 
+(require 'org)
 (require 'url)
 (require 'htmlize)
 
@@ -139,18 +140,46 @@ Corresponds to ssh’s `-i` option Example: \"~/.ssh/id.pub\"")
           (cadr (current-time-zone)) ". (<a href='%s'>original</a>)</p>"))
 
 
+;; From https://www.emacswiki.org/emacs/misc-cmds.el
+;; Candidate as a replacement for `kill-buffer', at least when used interactively.
+;; For example: (define-key global-map [remap kill-buffer] 'kill-buffer-and-its-windows)
+;;
+;; We cannot just redefine `kill-buffer', because some programs count on a
+;; specific other buffer taking the place of the killed buffer (in the window).
 ;;;###autoload
-(defun scpaste (original-name)
+(defun kill-buffer-and-its-windows (buffer)
+  "Kill BUFFER and delete its windows.  Default is `current-buffer'.
+BUFFER may be either a buffer or its name (a string)."
+  (interactive (list (read-buffer "Kill buffer: " (current-buffer) 'existing)))
+  (setq buffer  (get-buffer buffer))
+  (if (buffer-live-p buffer)            ; Kill live buffer only.
+      (let ((wins  (get-buffer-window-list buffer nil t))) ; On all frames.
+        (when (and (buffer-modified-p buffer)
+                   (fboundp '1on1-flash-ding-minibuffer-frame))
+          (1on1-flash-ding-minibuffer-frame t)) ; Defined in `oneonone.el'.
+        (when (kill-buffer buffer)      ; Only delete windows if buffer killed.
+          (dolist (win  wins)           ; (User might keep buffer if modified.)
+            (when (window-live-p win)
+              ;; Ignore error, in particular,
+              ;; "Attempt to delete the sole visible or iconified frame".
+              (condition-case nil (delete-window win) (error nil))))))
+    (when (called-interactively-p 'any)
+      (error "Cannot kill buffer.  Not a live buffer: `%s'" buffer))))
+
+
+;;;###autoload
+(defun do-scpaste (original-name exporter)
   "Paste the current buffer via `scp' to `scpaste-http-destination'.
 If ORIGINAL-NAME is an empty string, then the buffer name is used
 for the file name."
   (interactive "MName (defaults to buffer name): ")
   (let* ((b (generate-new-buffer (generate-new-buffer-name "b")))
-         (hb (htmlize-buffer))
+         (original-buffer (current-buffer))
          (name (replace-regexp-in-string "[/\\%*:|\"<>  ]+" "_"
                                          (if (equal "" original-name)
                                              (buffer-name)
                                            original-name)))
+         (hb (funcall exporter))
          (full-url (concat scpaste-http-destination
                            "/" (url-hexify-string name) ".html"))
          (scp-destination (concat scpaste-scp-destination
@@ -162,10 +191,11 @@ for the file name."
 
     ;; Save the files (while adding a footer to html file)
     (save-excursion
+      (switch-to-buffer original-buffer)
       (copy-to-buffer b (point-min) (point-max))
       (switch-to-buffer b)
       (write-file tmp-file)
-      (kill-buffer b)
+      (kill-buffer-and-its-windows b)
       (switch-to-buffer hb)
       (goto-char (point-min))
       (search-forward "</body>\n</html>")
@@ -173,7 +203,7 @@ for the file name."
                       (current-time-string)
                       (substring full-url 0 -5)))
       (write-file tmp-hfile)
-      (kill-buffer hb))
+      (kill-buffer-and-its-windows hb))
 
     (let* ((identity (if scpaste-scp-pubkey
                          (concat "-i " scpaste-scp-pubkey) ""))
@@ -203,6 +233,16 @@ for the file name."
           (progn
             (pop-to-buffer error-buffer)
             (help-mode-setup)))))))
+
+;;;###autoload
+(defun scpaste (original-name)
+  (interactive "MName (defaults to buffer name): ")
+  (do-scpaste original-name 'htmlize-buffer))
+
+;;;###autoload
+(defun scpaste-org (original-name)
+  (interactive "MName (defaults to buffer name): ")
+  (do-scpaste original-name 'org-html-export-as-html))
 
 ;;;###autoload
 (defun scpaste-region (name)
