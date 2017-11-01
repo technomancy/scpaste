@@ -124,7 +124,7 @@ Corresponds to ssh’s `-i` option Example: \"~/.ssh/id.pub\"")
   "Link to the user’s homebase (can be a mailto:).")
 
 (defvar scpaste-make-name-function
-  'buffer-name
+  'scpaste-make-name-from-buffer-name
   "The function used to generate file names, unless the user provides one.")
 
 ;; To set defvar while developing: (load-file (buffer-file-name))
