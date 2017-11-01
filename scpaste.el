@@ -124,7 +124,7 @@ Corresponds to ssh’s `-i` option Example: \"~/.ssh/id.pub\"")
   "Link to the user’s homebase (can be a mailto:).")
 
 (defvar scpaste-make-name-function
-  'buffer-name
+  'scpaste-make-name-from-buffer-name
   "The function used to generate file names, unless the user provides one.")
 
 ;; To set defvar while developing: (load-file (buffer-file-name))
@@ -152,9 +152,9 @@ with SUFFIX as argument."
     (if (equal "" input) default input)))
 
 (defun scpaste-make-name-from-buffer-name (&optional suffix)
-  "Make a name from current timestamp and current buffer's extension.
+  "Make a name from buffer name and extension.
 
-If provided, SUFFIX is inserted between name and extension."
+If non-nil, SUFFIX is inserted between name and extension."
   (concat
    (file-name-sans-extension (buffer-name))
    suffix
