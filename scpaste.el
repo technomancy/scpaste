@@ -152,9 +152,9 @@ with SUFFIX as argument."
     (if (equal "" input) default input)))
 
 (defun scpaste-make-name-from-buffer-name (&optional suffix)
-  "Make a name from current timestamp and current buffer's extension.
+  "Make a name from buffer name and extension.
 
-If provided, SUFFIX is inserted between name and extension."
+If non-nil, SUFFIX is inserted between name and extension."
   (concat
    (file-name-sans-extension (buffer-name))
    suffix
