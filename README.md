@@ -3,12 +3,13 @@
 This will place an HTML copy of a buffer on the web on a server to
 which the user has SSH access.
 
-It's similar in purpose to services such as http://paste.lisp.org or
-http://rafb.net, but it's much simpler since it assumes the user has
-an account on a publicly-accessible HTTP server. It uses `scp` as
-its transport and uses Emacs' font-lock as its syntax highlighter
-instead of relying on a third-party syntax highlighter for which
-individual language support must be added one-by-one.
+It's similar in purpose to services such as [Gist](https://gist.github.com)
+or [Pastebin](https://pastebin.com), but it's much simpler since it 
+assumes the user has an account on a publicly-accessible HTTP
+server. It uses `scp` as its transport and uses Emacs' font-lock as
+its syntax highlighter instead of relying on a third-party syntax
+highlighter for which individual language support must be added
+one-by-one.
 
 Requires [htmlize](https://github.com/hniksic/emacs-htmlize) library.
 
@@ -50,12 +51,7 @@ in `scpaste-http-destination` by invoking `M-x scpaste-index`. This
 will upload an explanation as well as a listing of existing
 pastes. If a paste's filename includes "private" it will be skipped.
 
-## Todo
-
-* Automatically linkify URLs inside htmlfontify (stick it on the
-  hfy-opts group of misc tunables according to fledermaus)
-
 ## Copyright
 
-Copyright © 2008-2018 Phil Hagelberg. Distributed under the same terms
-as GNU Emacs.
+Copyright © 2008-2018 Phil Hagelberg and contributors.
+Distributed under the same terms as GNU Emacs.
