@@ -1,6 +1,6 @@
 ;;; scpaste.el --- Paste to the web via scp.
 
-;; Copyright © 2008-2012 Phil Hagelberg and contributors
+;; Copyright © 2008-2018 Phil Hagelberg and contributors
 
 ;; Author: Phil Hagelberg
 ;; URL: https://github.com/technomancy/scpaste
@@ -17,8 +17,8 @@
 ;; This will place an HTML copy of a buffer on the web on a server
 ;; that the user has shell access on.
 
-;; It's similar in purpose to services such as http://paste.lisp.org
-;; or http://rafb.net, but it's much simpler since it assumes the user
+;; It's similar in purpose to services such as https://gist.github.com
+;; or https://pastebin.com, but it's much simpler since it assumes the user
 ;; has an account on a publicly-accessible HTTP server. It uses `scp'
 ;; as its transport and uses Emacs' font-lock as its syntax
 ;; highlighter instead of relying on a third-party syntax highlighter
@@ -26,13 +26,18 @@
 
 ;;; Install
 
-;; Add Marmalade as a package source, and then run M-x package-install
-;; scpaste.
+;; Requires htmlize; available at https://github.com/hniksic/emacs-htmlize
+
+;; Open the file and run `package-install-from-buffer', or put it on your
+;; `load-path' and add these to your config:
+
+;; (autoload 'scpaste "scpaste" nil t)
+;; (autoload 'scpaste-region "scpaste" nil t)
 
 ;; Set `scpaste-http-destination' and `scpaste-scp-destination' to
 ;; appropriate values, and add this to your Emacs config:
 
-;; (setq scpaste-http-destination "http://p.hagelb.org"
+;; (setq scpaste-http-destination "https://p.hagelb.org"
 ;;       scpaste-scp-destination "p.hagelb.org:p.hagelb.org")
 
 ;; If you have a different keyfile, you can set that, too:
@@ -47,8 +52,9 @@
 
 ;; Optionally you can set the displayed name for the footer and where
 ;; it should link to:
+
 ;; (setq scpaste-user-name "Technomancy"
-;;       scpaste-user-address "http://technomancy.us/")
+;;       scpaste-user-address "https://technomancy.us/")
 
 ;;; Usage
 
@@ -66,7 +72,7 @@
 ;; having to enter your password once for each paste. Also be sure the
 ;; key of the host referenced in `scpaste-scp-destination' is in your
 ;; known hosts file--scpaste will not prompt you to add it but will
-;; simply hang.
+;; simply hang and need you to hit C-g to cancel it.
 
 ;;; License:
 
@@ -102,18 +108,19 @@
   "The ssh program to use when running remote shell commands.")
 
 (defvar scpaste-http-destination
-  "http://p.hagelb.org"
+  "https://p.hagelb.org"
   "Publicly-accessible (via HTTP) location for pasted files.")
 
 (defvar scpaste-scp-destination
   "p.hagelb.org:p.hagelb.org"
   "SSH-accessible directory corresponding to `scpaste-http-destination'.
-You must have write-access to this directory via `scp'.")
+You must have write access to this directory via `scp'.")
 
 (defvar scpaste-scp-pubkey
   nil
   "Identity file for the server.
-Corresponds to ssh’s `-i` option Example: \"~/.ssh/id.pub\"")
+Corresponds to ssh’s `-i` option Example: \"~/.ssh/id.pub\".
+It's better to set this in ~/.ssh/config than to use this setting.")
 
 (defvar scpaste-user-name
   nil
@@ -127,9 +134,9 @@ Corresponds to ssh’s `-i` option Example: \"~/.ssh/id.pub\"")
   'scpaste-make-name-from-buffer-name
   "The function used to generate file names, unless the user provides one.")
 
-;; To set defvar while developing: (load-file (buffer-file-name))
 (defvar scpaste-el-location (replace-regexp-in-string "\.elc$" ".el"
-                                                      load-file-name))
+                                                      (or load-file-name
+                                                          (buffer-file-name))))
 
 (defun scpaste-footer ()
   "HTML message to place at the bottom of each file."
@@ -141,7 +148,7 @@ Corresponds to ssh’s `-i` option Example: \"~/.ssh/id.pub\"")
             (if scpaste-user-address
                 (concat "<a href='" scpaste-user-address "'>" user "</a>")
               user))
-          " using <a href='http://p.hagelb.org'>scpaste</a> at %s. "
+          " using <a href='https://p.hagelb.org'>scpaste</a> at %s. "
           (cadr (current-time-zone)) ". (<a href='%s'>original</a>)</p>"))
 
 (defun scpaste-read-name (&optional suffix)
@@ -150,23 +157,22 @@ Corresponds to ssh’s `-i` option Example: \"~/.ssh/id.pub\"")
 Defaults to the return value of `scpaste-make-name-function'
 with SUFFIX as argument."
   (let* ((default (funcall scpaste-make-name-function suffix))
-         (input (read-from-minibuffer (format "Name: (defaults to %s) " default))))
+         (input (read-from-minibuffer (format "Name: (defaults to %s) "
+                                              default))))
     (if (equal "" input) default input)))
 
 (defun scpaste-make-name-from-buffer-name (&optional suffix)
   "Make a name from buffer name and extension.
 
 If non-nil, SUFFIX is inserted between name and extension."
-  (concat
-   (file-name-sans-extension (buffer-name))
-   suffix
-   (file-name-extension (buffer-name) t)))
+  (concat (file-name-sans-extension (buffer-name))
+          suffix
+          (file-name-extension (buffer-name) t)))
 
 (defun scpaste-make-name-from-timestamp (&optional _)
   "Make a name from current timestamp and current buffer's extension."
-  (concat
-   (format-time-string "%s")
-   (file-name-extension (buffer-name) t)))
+  (concat (format-time-string "%s")
+          (file-name-extension (buffer-name) t)))
 
 ;;;###autoload
 (defun scpaste (original-name)
@@ -175,7 +181,7 @@ If ORIGINAL-NAME is an empty string, then the buffer name is used
 for the file name."
   (interactive (list (scpaste-read-name)))
 
-  (let* ((b (generate-new-buffer (generate-new-buffer-name "b")))
+  (let* ((b (generate-new-buffer (generate-new-buffer-name "scpaste")))
          (hb (htmlize-buffer))
          (name (replace-regexp-in-string "[/\\%*:|\"<>  ]+" "_"
                                          original-name))
@@ -221,7 +227,7 @@ for the file name."
                           (format "Executing %s" command-2)
                         (shell-command command-2 nil error-buffer))))
              ;; (select-enable-primary t))
-             (x-select-enable-primary t))
+             (select-enable-primary t))
         (delete-file tmp-file)
         (delete-file tmp-hfile)
         ;; Notify user and put the URL on the kill ring
@@ -236,9 +242,8 @@ for the file name."
 (defun scpaste-region (name)
   "Paste the current region via `scpaste'.
 NAME is used for the file name."
-  (interactive (list (scpaste-read-name (concat "-" (number-to-string (region-beginning))
-                                                "-"
-                                                (number-to-string (region-end))))))
+  (interactive (list (scpaste-read-name (format "-%s-%s" (region-beginning)
+                                                (region-end)))))
   (let ((region-contents (buffer-substring (mark) (point))))
     (with-temp-buffer
       (insert region-contents)
@@ -249,8 +254,9 @@ NAME is used for the file name."
   "Generate an index of all existing pastes on server on the splash page."
   (interactive)
   (let* ((dest-parts (split-string scpaste-scp-destination ":"))
-         (files (shell-command-to-string (concat scpaste-ssh " " (car dest-parts)
-                                                 " ls " (cadr dest-parts))))
+         (files (shell-command-to-string (concat scpaste-ssh " "
+                                                 (car dest-parts) " ls "
+                                                 (cadr dest-parts))))
          (file-list (split-string files "\n")))
     (save-excursion
       (with-temp-buffer
@@ -266,7 +272,8 @@ NAME is used for the file name."
         (emacs-lisp-mode)
         (if (fboundp 'font-lock-ensure)
             (font-lock-ensure)
-          (font-lock-fontify-buffer))
+          (with-no-warnings ; fallback for Emacs 24
+            (font-lock-fontify-buffer)))
         (rename-buffer "SCPaste")
         (write-file (concat temporary-file-directory "scpaste-index"))
         (scpaste "index")))))
