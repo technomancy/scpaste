@@ -180,8 +180,9 @@ If non-nil, SUFFIX is inserted between name and extension."
 If ORIGINAL-NAME is an empty string, then the buffer name is used
 for the file name."
   (interactive (list (scpaste-read-name)))
-
   (let* ((b (generate-new-buffer (generate-new-buffer-name "scpaste")))
+         (pre-hl-line (and (featurep 'hl-line) hl-line-mode
+                           (progn (hl-line-mode -1) t)))
          (hb (htmlize-buffer))
          (name (replace-regexp-in-string "[/\\%*:|\"<>  ]+" "_"
                                          original-name))
@@ -193,7 +194,8 @@ for the file name."
                                            "/" name))
          (tmp-file (concat temporary-file-directory name))
          (tmp-hfile (concat temporary-file-directory name ".html")))
-
+    (when pre-hl-line
+      (hl-line-mode 1))
     ;; Save the files (while adding a footer to html file)
     (save-excursion
       (copy-to-buffer b (point-min) (point-max))
