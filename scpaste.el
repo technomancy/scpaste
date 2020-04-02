@@ -171,8 +171,7 @@ If non-nil, SUFFIX is inserted between name and extension."
 
 (defun scpaste-make-name-from-timestamp (&optional _)
   "Make a name from current timestamp and current buffer's extension."
-  (concat (format-time-string "%s")
-          (file-name-extension (buffer-name) t)))
+  (concat (format-time-string "%s") (file-name-extension (buffer-name) t)))
 
 ;;;###autoload
 (defun scpaste (original-name)
@@ -188,10 +187,6 @@ for the file name."
                                          original-name))
          (full-url (concat scpaste-http-destination
                            "/" (url-hexify-string name) ".html"))
-         (scp-destination (concat scpaste-scp-destination
-                                  "/" name ".html"))
-         (scp-original-destination (concat scpaste-scp-destination
-                                           "/" name))
          (tmp-file (concat temporary-file-directory name))
          (tmp-hfile (concat temporary-file-directory name ".html")))
     (when pre-hl-line
@@ -215,30 +210,20 @@ for the file name."
                          (concat "-i " scpaste-scp-pubkey) ""))
            (port (if scpaste-scp-port (concat "-P " scpaste-scp-port)))
            (invocation (concat scpaste-scp " -q " identity " " port))
-           (command-1 (concat invocation " " tmp-file " "
-                              scp-original-destination))
-           (command-2 (concat invocation " " tmp-hfile " "
-                              scp-destination)))
+           (command (concat invocation " " tmp-file " " tmp-hfile " "
+                            scpaste-scp-destination "/"))
+           (error-buffer "*scp-error*")
+           (retval (shell-command command nil error-buffer))
+           (select-enable-primary t))
 
-      (let* ((error-buffer "*scp-error*")
-             (retval (+
-                      (with-temp-message
-                          (format "Executing %s" command-1)
-                        (shell-command command-1 nil error-buffer))
-                      (with-temp-message
-                          (format "Executing %s" command-2)
-                        (shell-command command-2 nil error-buffer))))
-             ;; (select-enable-primary t))
-             (select-enable-primary t))
-        (delete-file tmp-file)
-        (delete-file tmp-hfile)
-        ;; Notify user and put the URL on the kill ring
-        (if (= retval 0)
-            (progn (kill-new full-url)
-                   (message "Pasted to %s (on kill ring)" full-url))
-          (progn
-            (pop-to-buffer error-buffer)
-            (help-mode-setup)))))))
+      (delete-file tmp-file)
+      (delete-file tmp-hfile)
+      ;; Notify user and put the URL on the kill ring
+      (if (= retval 0)
+          (progn (kill-new full-url)
+                 (message "Pasted to %s (on kill ring)" full-url))
+        (pop-to-buffer error-buffer)
+        (help-mode-setup)))))
 
 ;;;###autoload
 (defun scpaste-region (name)
