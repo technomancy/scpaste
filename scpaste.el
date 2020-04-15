@@ -1,6 +1,6 @@
 ;;; scpaste.el --- Paste to the web via scp.
 
-;; Copyright © 2008-2018 Phil Hagelberg and contributors
+;; Copyright © 2008-2020 Phil Hagelberg and contributors
 
 ;; Author: Phil Hagelberg
 ;; URL: https://github.com/technomancy/scpaste
@@ -26,7 +26,9 @@
 
 ;;; Install
 
-;; Requires htmlize; available at https://github.com/hniksic/emacs-htmlize
+;; Requires htmlize; available at
+;; https://github.com/hniksic/emacs-htmlize.  If htmlize is not
+;; installed, by default it will fall back to Emacs's own htmlfontify.
 
 ;; Open the file and run `package-install-from-buffer', or put it on your
 ;; `load-path' and add these to your config:
@@ -94,7 +96,16 @@
 ;;; Code:
 
 (require 'url)
-(require 'htmlize)
+(require 'htmlize nil t)
+
+(defvar scpaste-html-converter
+  (if (featurep 'htmlize)
+      'htmlize-buffer
+    'htmlfontify-buffer)
+  "Name of the function to use to generate the HTML output.
+By default, it will try to use `htmlize-buffer' from htmlize, and
+will fall back to `htmlfontify-buffer' from Emacs's `htmlfontify'
+if htmlize is not available.")
 
 (defvar scpaste-scp-port
   nil)
@@ -182,7 +193,7 @@ for the file name."
   (let* ((b (generate-new-buffer (generate-new-buffer-name "scpaste")))
          (pre-hl-line (and (featurep 'hl-line) hl-line-mode
                            (progn (hl-line-mode -1) t)))
-         (hb (htmlize-buffer))
+         (hb (funcall scpaste-html-converter))
          (name (replace-regexp-in-string "[/\\%*:|\"<>  ]+" "_"
                                          original-name))
          (full-url (concat scpaste-http-destination
