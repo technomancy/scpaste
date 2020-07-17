@@ -1,5 +1,10 @@
 # SCPaste
 
+This project is now
+[hosted on sourcehut](https://git.sr.ht/~technomancy/scpaste).
+
+To contribute, please email patches to the author or contact him on Freenode.
+
 This will place an HTML copy of a buffer on the web on a server to
 which the user has SSH access.
 
